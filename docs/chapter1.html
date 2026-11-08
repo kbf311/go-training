@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第1章：なぜNext.js × Goなのか？ | Go言語実践Web入門</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
+  <script src="assets/js/mermaid.min.js"></script>
+</head>
+
+<body class="text-[18px] leading-relaxed text-slate-800 bg-slate-50 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="bg-cyan-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-sm tracking-wide">Go ×
+          Next.js</span>
+        <a href="index.html" class="text-2xl font-bold tracking-tight hover:text-cyan-300 transition">Go言語 実践Web入門</a>
+      </div>
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="index.html" class="text-slate-300 hover:text-white transition">ホーム</a>
+        <a href="chapter1.html" class="text-cyan-300 border-b-2 border-cyan-400 pb-1">第1章</a>
+        <a href="chapter2.html" class="text-slate-300 hover:text-white transition">第2章</a>
+        <a href="chapter3.html" class="text-slate-300 hover:text-white transition">第3章</a>
+        <a href="chapter4.html" class="text-slate-300 hover:text-white transition">第4章</a>
+        <a href="chapter5.html" class="text-slate-300 hover:text-white transition">第5章</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-4xl mx-auto px-6 py-12 flex-1 w-full">
+
+    <!-- パンくずリスト -->
+    <nav class="text-sm text-slate-500 mb-6">
+      <a href="index.html" class="hover:underline">目次</a> &gt; <span class="text-slate-800 font-semibold">第1章：なぜNext.js
+        × Goなのか？</span>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-8 md:p-12 mb-12">
+      <!-- 章見出し -->
+      <div class="border-b border-slate-200 pb-6 mb-8">
+        <span
+          class="text-indigo-600 font-bold text-sm tracking-wider uppercase bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100">Chapter
+          01</span>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-3 leading-tight">
+          なぜNext.js × Goなのか？
+        </h1>
+        <p class="text-slate-500 mt-2 text-lg">Next.js単体（Route Handlers / Server Actions）と比べたGoバックエンドの強みと、システム構成</p>
+      </div>
+
+      <!-- セクション 1-1 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>1-1</span> なんでGoか（Next.js単体より何がいいのか？）
+        </h2>
+        <p class="mb-4">
+          Next.js（App Router）は非常に強力で、Route HandlersやServer Actionsを使えば、Node.js上でDBアクセスを含むバックエンドAPIをすべて完結させることも可能です。
+        </p>
+        <p class="mb-6">
+          では、<strong>なぜわざわざGo言語でバックエンドを独立して作るのでしょうか？</strong> 主な理由は以下の4点にあります。
+        </p>
+
+        <!-- メリット4つのカード -->
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span class="text-2xl">⚡</span> 圧倒的な実行速度と省メモリ
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              Goは機械語に直接コンパイルされる言語です。Node.jsのような巨大なV8ランタイムが不要なため、起動はミリ秒単位、アイドル時のメモリ消費も数十MB程度で、高負荷なAPIリクエストを瞬時に捌きます。
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span class="text-2xl">🔀</span> 強力かつ軽量な並行処理
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              Goの真骨頂である
+              <code>goroutine</code>（ゴルーチン）は、OSスレッドよりもはるかに軽量（数KB）に動作します。数万件の並行リクエストや外部APIへの一括並行アクセスも極めて簡単に実装できます。
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span class="text-2xl">📦</span> 「単一バイナリ」配布の手軽さ
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              <code>go build</code> で生成されるのは、依存ライブラリを内包した1つの実行ファイル（<code>api.exe</code> 等）だけです。<code>node_modules</code>
+              のような重い依存関係の配置やバージョン不整合に悩まされません。
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span class="text-2xl">🎯</span> フロントとバックの責務分離
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              画面の頻繁なデザイン変更やUI要件はNext.jsで素早く対応し、ビジネスロジック・DBトランザクション・認証などの根幹は堅牢なGoで守るという、明確なチーム・システム分担が実現します。
+            </p>
+          </div>
+        </div>
+
+        <!-- 比較表 -->
+        <h3 class="font-bold text-slate-800 text-xl mb-3">Next.js単体構成 vs Next.js + Go構成 比較</h3>
+        <div class="overflow-x-auto mb-6">
+          <table
+            class="w-full text-left border-collapse text-base bg-white rounded-lg shadow-sm border border-slate-200">
+            <thead>
+              <tr class="bg-indigo-50 border-b border-indigo-100 text-indigo-900 font-bold">
+                <th class="p-3.5 border-r border-indigo-100">観点</th>
+                <th class="p-3.5 border-r border-indigo-100">Next.js 単体 (Node.js)</th>
+                <th class="p-3.5 bg-cyan-50/50 text-cyan-950">Next.js + Go 構成</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              <tr>
+                <td class="p-3.5 font-bold text-slate-700 border-r border-slate-200">言語・エコシステム</td>
+                <td class="p-3.5 border-r border-slate-200">TypeScript一元化（学習コスト低）</td>
+                <td class="p-3.5 bg-cyan-50/20">TypeScript + Go（用途に特化した最適化）</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-slate-700 border-r border-slate-200">メモリ・CPU効率</td>
+                <td class="p-3.5 border-r border-slate-200">Nodeランタイム分重い（100MB〜）</td>
+                <td class="p-3.5 bg-cyan-50/20 font-semibold text-emerald-700">極めて軽量・省リソース（20〜40MB）</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-slate-700 border-r border-slate-200">デプロイ・配布</td>
+                <td class="p-3.5 border-r border-slate-200">node_modules やコンテナが必要</td>
+                <td class="p-3.5 bg-cyan-50/20 font-semibold text-emerald-700">Go側はバイナリ1個を配置するだけ</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-slate-700 border-r border-slate-200">重い処理・並行処理</td>
+                <td class="p-3.5 border-r border-slate-200">シングルスレッド（Workerが必要）</td>
+                <td class="p-3.5 bg-cyan-50/20 font-semibold text-emerald-700">Goroutineで数十万並行も余裕で処理</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 一般的なWebアプリ構成との徹底比較 -->
+        <h3 class="font-bold text-slate-800 text-xl mt-10 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
+          <span>📊</span> 他の一般的なWebアプリ構成との徹底比較
+        </h3>
+        <p class="text-slate-600 mb-6 text-base">
+          世の中には様々なアーキテクチャが存在します。「どんな要件のときにどの技術構成を選ぶべきか」を整理しました。
+        </p>
+
+        <!-- マトリクス比較表 -->
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full text-left border-collapse text-sm md:text-base bg-white rounded-xl shadow-sm border border-slate-200">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-800 font-bold">
+                <th class="p-3 border-r border-slate-200">構成</th>
+                <th class="p-3 border-r border-slate-200">実行速度・並行性</th>
+                <th class="p-3 border-r border-slate-200">メモリ効率</th>
+                <th class="p-3 border-r border-slate-200">開発初速・生産性</th>
+                <th class="p-3">得意な用途・選定理由</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 text-slate-700">
+              <tr class="hover:bg-slate-50/80">
+                <td class="p-3 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                  <span class="text-indigo-600">●</span> Python + Python<br><span class="text-xs text-slate-500 font-normal">(FastAPI / Django)</span>
+                </td>
+                <td class="p-3 border-r border-slate-200 text-amber-700">やや低速<br><span class="text-xs text-slate-500">(GILによる制約)</span></td>
+                <td class="p-3 border-r border-slate-200">中程度<br><span class="text-xs text-slate-500">(50〜100MB)</span></td>
+                <td class="p-3 border-r border-slate-200 text-emerald-700 font-semibold">高速<br><span class="text-xs text-slate-500">学習コスト低</span></td>
+                <td class="p-3">AI・機械学習ライブラリの直接活用、データ分析ダッシュボード</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80">
+                <td class="p-3 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                  <span class="text-rose-600">●</span> Next.js + Java<br><span class="text-xs text-slate-500 font-normal">(Spring Boot)</span>
+                </td>
+                <td class="p-3 border-r border-slate-200 text-emerald-700 font-semibold">高速<br><span class="text-xs text-slate-500">(JITコンパイル)</span></td>
+                <td class="p-3 border-r border-slate-200 text-rose-700">重量級<br><span class="text-xs text-slate-500">(500MB〜数GB)</span></td>
+                <td class="p-3 border-r border-slate-200 text-amber-700">やや重い<br><span class="text-xs text-slate-500">規約・設定が多い</span></td>
+                <td class="p-3">メガバンクや大規模エンタープライズ、強固なDDD設計を要する基幹系</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80">
+                <td class="p-3 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                  <span class="text-amber-600">●</span> Next.js + Python<br><span class="text-xs text-slate-500 font-normal">(FastAPI APIサーバー)</span>
+                </td>
+                <td class="p-3 border-r border-slate-200 text-amber-700">普通〜やや低速</td>
+                <td class="p-3 border-r border-slate-200">中程度<br><span class="text-xs text-slate-500">(60〜150MB)</span></td>
+                <td class="p-3 border-r border-slate-200 text-emerald-700 font-semibold">非常に高速<br><span class="text-xs text-slate-500">Pydantic・型ヒント</span></td>
+                <td class="p-3">生成AI（LLM / LangChain / RAG）アプリ、モダンUIとAI機能の融合</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80">
+                <td class="p-3 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                  <span class="text-blue-600">●</span> Next.js + Next.js<br><span class="text-xs text-slate-500 font-normal">(Node.js フルスタック)</span>
+                </td>
+                <td class="p-3 border-r border-slate-200">中程度<br><span class="text-xs text-slate-500">(シングルスレッド)</span></td>
+                <td class="p-3 border-r border-slate-200 text-amber-700">やや重い<br><span class="text-xs text-slate-500">(100〜250MB)</span></td>
+                <td class="p-3 border-r border-slate-200 text-emerald-700 font-semibold">最速<br><span class="text-xs text-slate-500">TS一言語完結</span></td>
+                <td class="p-3">スタートアップのMVP、プロトタイプ、Vercel一括デプロイ</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80">
+                <td class="p-3 font-bold text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                  <span class="text-red-600">●</span> Ruby on Rails<br><span class="text-xs text-slate-500 font-normal">(モノリス / Hotwire)</span>
+                </td>
+                <td class="p-3 border-r border-slate-200 text-amber-700">低速〜普通</td>
+                <td class="p-3 border-r border-slate-200 text-amber-700">やや重い<br><span class="text-xs text-slate-500">(150〜300MB)</span></td>
+                <td class="p-3 border-r border-slate-200 text-emerald-700 font-semibold">最速レベル<br><span class="text-xs text-slate-500">CoC・充実のGem</span></td>
+                <td class="p-3">中小規模Webサービス、素早い市場検証、業務CRUDシステム</td>
+              </tr>
+              <tr class="bg-cyan-50/40 border-t-2 border-cyan-400 font-semibold">
+                <td class="p-3 text-cyan-950 font-bold border-r border-cyan-100 whitespace-nowrap">
+                  <span class="text-cyan-600">★</span> Next.js + Go<br><span class="text-xs text-cyan-700 font-normal">（本プロジェクト）</span>
+                </td>
+                <td class="p-3 border-r border-cyan-100 text-emerald-700 font-bold">超高速<br><span class="text-xs text-slate-500 font-normal">Goroutine並行処理</span></td>
+                <td class="p-3 border-r border-cyan-100 text-emerald-700 font-bold">極めて軽量<br><span class="text-xs text-slate-500 font-normal">(20〜40MB)</span></td>
+                <td class="p-3 border-r border-cyan-100 text-slate-700">中〜高<br><span class="text-xs text-slate-500 font-normal">文法が極めて単純</span></td>
+                <td class="p-3 text-slate-900">
+                  高トラフィックWeb API、マイクロサービス、長期保守性・堅牢性とリッチUIの両立
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 各構成の詳細カード -->
+        <div class="space-y-4 mb-8">
+          <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <span class="text-lg">🐍</span> Python + Python (FastAPI / Flask) との違い
+            </h4>
+            <p class="text-slate-700 text-base leading-relaxed">
+              PythonはAI・機械学習ライブラリが最も充実していますが、GIL（グローバルインタプリタロック）によりCPUマルチコアを活かした並行処理が苦手です。AIの推論を呼び出す用途ならPythonが第一候補ですが、<strong>「何万件もの同時アクセスを低レイテンシ・低メモリで捌くAPI」としてはGoが圧倒的なパフォーマンス</strong>を発揮します。
+            </p>
+          </div>
+
+          <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <span class="text-lg">☕</span> Next.js + Java (Spring Boot) との違い
+            </h4>
+            <p class="text-slate-700 text-base leading-relaxed">
+              Javaはエンタープライズで数十年の実績がありますが、JVM（仮想マシン）が重く、コンテナ起動に数十秒かかり、メモリも平気で数百MB〜GB単位で消費します。<strong>GoはJavaと同等の型安全性と実行速度を持ちながら、起動時間は数ミリ秒、メモリ消費は10分の1以下</strong>でコンテナやクラウド環境（AWS ECS/Fargate等）のコストを激減させます。
+            </p>
+          </div>
+
+          <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <span class="text-lg">🤖</span> Next.js + Python (FastAPI) との違い
+            </h4>
+            <p class="text-slate-700 text-base leading-relaxed">
+              モダンなReact UIとAI/LLMバックエンドを組み合わせる現場では非常に人気のある構成です。ただし、API自体のスループットやサーバー維持コスト、単一バイナリ配布などの運用性ではGoに軍配が上がります。<strong>「AI主体の機能はPython、トランザクションや高頻度データ処理はGo」</strong>というマイクロサービス連携もよく採用されます。
+            </p>
+          </div>
+
+          <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <span class="text-lg">⚡</span> Next.js + Next.js (Node.js単体) との違い
+            </h4>
+            <p class="text-slate-700 text-base leading-relaxed">
+              TypeScript一元化は初期開発が最も速いメリットがあります。しかしプロジェクトが育つにつれ、Node.jsのメモリ増大、長時間のバッチ処理でのCPU詰まり、node_modulesのセキュリティ脆弱性更新などの課題に直面します。<strong>Goをバックエンドに切り出すことで、画面の変更頻度とDB/ビジネスロジックの安定性を分離</strong>できます。
+            </p>
+          </div>
+
+          <div class="p-5 bg-slate-50 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <span class="text-lg">💎</span> Ruby on Rails との違い
+            </h4>
+            <p class="text-slate-700 text-base leading-relaxed">
+              Railsは「設定より規約（CoC）」で爆速プロトタイピングが可能です。しかし動的型付け言語ゆえに、コードベースが数万行を超えると型エラーの不安やリファクタリングの難しさが増します。<strong>Next.js (TypeScript) + Go は双方とも静的型付け</strong>のため、コンパイル時に不具合の大半を検知でき、長期運用に抜群の強さを誇ります。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- セクション 1-2 -->
+      <section class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>1-2</span> 今回構築するモンスター図鑑の全体アーキテクチャ
+        </h2>
+        <p class="mb-4">
+          本プロジェクト（モンスター図鑑）は、フロントエンドとバックエンドが完全に疎結合なRESTful API構成になっています。
+        </p>
+
+        <!-- Mermaidリッチアーキテクチャ図 -->
+        <div class="mermaid text-center">
+          flowchart TB
+          subgraph Client["🖥️ クライアント層"]
+          Browser["👤 Webブラウザ（ユーザー操作）"]
+          end
+
+          subgraph Frontend["⚡ フロントエンド: Next.js 16 (Port: 3000)"]
+          UI["React 19 / Tailwind CSS<br><code>app/monsters/...</code> 画面UI"]
+          ApiClient["API クライアント<br><code>lib/api.ts</code> (fetch / 認証Cookie)"]
+          UI <--> ApiClient
+            end
+
+            subgraph Backend["🚀 バックエンド: Go (Chi Router / Port: 8080)"]
+            Router["Chi ルーター (cmd/api/main.go)<br>CORS / 認証セッション管理"]
+            Handlers["Handler層 (internal/handler)<br>リクエスト検証・JSON変換"]
+            Services["Service層 (internal/service)<br>ビジネスロジック・権限判定"]
+            Repos["Repository層 (internal/repository)<br>データアクセス抽象化"]
+
+            Router --> Handlers
+            Handlers --> Services
+            Services --> Repos
+            end
+
+            subgraph Database["💾 データ永続化層: SQLite + sqlc"]
+            SQLC["sqlc 自動生成コード<br><code>internal/db/*.sql.go</code> (型安全)"]
+            SQLite[("SQLite DB ファイル<br><code>backend/data/app.db</code>")]
+            SQLC <--> SQLite
+              end
+
+              Browser <-->|"1. HTML描画 & ユーザー操作"| UI
+                ApiClient <-->|"2. JSON REST API リクエスト (Cookie付与)"| Router
+                  Repos <-->|"3. 型安全クエリ実行"| SQLC
+
+                    style Client fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#0f172a
+                    style Frontend fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+                    style Backend fill:#ecfeff,stroke:#06b6d4,stroke-width:2px,color:#164e63
+                    style Database fill:#fdf4ff,stroke:#a855f7,stroke-width:2px,color:#581c87
+
+                    style Browser fill:#ffffff,stroke:#64748b,stroke-width:1.5px
+                    style UI fill:#ffffff,stroke:#3b82f6,stroke-width:1.5px
+                    style ApiClient fill:#ffffff,stroke:#3b82f6,stroke-width:1.5px
+                    style Router fill:#ffffff,stroke:#06b6d4,stroke-width:1.5px
+                    style Handlers fill:#ffffff,stroke:#06b6d4,stroke-width:1.5px
+                    style Services fill:#ffffff,stroke:#06b6d4,stroke-width:1.5px
+                    style Repos fill:#ffffff,stroke:#06b6d4,stroke-width:1.5px
+                    style SQLC fill:#ffffff,stroke:#a855f7,stroke-width:1.5px
+                    style SQLite fill:#ffffff,stroke:#a855f7,stroke-width:1.5px
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg text-blue-900 text-base mt-6">
+          <strong>ポイント：</strong>
+          Go言語側（<code>backend/</code>）とNext.js側（<code>frontend/</code>）は完全に独立して起動します。
+          Next.jsのクライアントコンポーネントまたはServer Componentsから <code>http://localhost:8080/api</code>
+          に向けてHTTPリクエストを送信し、GoがJSONで応答します。
+        </div>
+      </section>
+
+      <!-- ナビゲーションボタン -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-8 mt-8">
+        <a href="index.html"
+          class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition">
+          ← 目次に戻る
+        </a>
+        <a href="chapter2.html"
+          class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow hover:shadow-indigo-500/30 transition">
+          第2章：環境構築とGoの第一歩 →
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-slate-900 text-slate-400 py-8 px-6 text-center text-sm border-t border-slate-800">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© モンスター図鑑プロジェクト - Next.js & Go 開発ドキュメント</p>
+      <div class="flex space-x-4">
+        <a href="index.html" class="hover:text-white transition">目次</a>
+        <a href="chapter2.html" class="hover:text-white transition">第2章へ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mermaid初期化 & 拡大モーダルスクリプト -->
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.createElement('div');
+      modal.id = 'mermaid-modal';
+      modal.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 cursor-zoom-out transition-opacity duration-200';
+      modal.innerHTML = `
+        <div class="relative w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] bg-white rounded-2xl p-4 md:p-6 shadow-2xl overflow-hidden cursor-default flex flex-col items-center">
+          <div class="w-full flex justify-between items-center pb-3 border-b border-slate-200 mb-2 flex-shrink-0">
+            <span class="text-sm font-bold text-slate-500">🔍 図の全画面プレビュー (Escキーまたは外側クリックで閉じます)</span>
+            <button id="close-modal-btn" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg transition">✕</button>
+          </div>
+          <div id="modal-content" class="w-full flex-1 flex justify-center items-center overflow-auto p-2"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const modalContent = document.getElementById('modal-content');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalContent.innerHTML = '';
+      };
+
+      closeModalBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      const openModal = (mermaidEl) => {
+        const svg = mermaidEl.querySelector('svg');
+        if (svg) {
+          modalContent.innerHTML = svg.outerHTML;
+          const modalSvg = modalContent.querySelector('svg');
+          modalSvg.style.width = '100%';
+          modalSvg.style.height = '100%';
+          modalSvg.style.maxWidth = '100%';
+          modalSvg.style.maxHeight = '100%';
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      };
+
+      setTimeout(() => {
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          el.classList.add('cursor-pointer', 'flex', 'justify-center', 'items-center', 'w-full');
+          if (!el.parentElement.classList.contains('mermaid-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-wrapper bg-white border border-slate-200 rounded-xl p-6 my-6 shadow-sm hover:shadow-md transition flex justify-center items-center overflow-x-auto cursor-pointer';
+            wrapper.title = 'クリックで拡大表示';
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+
+            wrapper.addEventListener('click', (e) => {
+              if (!e.target.closest('#mermaid-modal')) {
+                openModal(el);
+              }
+            });
+          }
+        });
+      }, 500);
+    });
+  </script>
+
+</body>
+
+</html>

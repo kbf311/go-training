@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第5章：発展とこれからの学習 | Go言語実践Web入門</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
+  <script src="assets/js/mermaid.min.js"></script>
+</head>
+
+<body class="text-[18px] leading-relaxed text-slate-800 bg-slate-50 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="bg-cyan-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-sm tracking-wide">Go ×
+          Next.js</span>
+        <a href="index.html" class="text-2xl font-bold tracking-tight hover:text-cyan-300 transition">Go言語 実践Web入門</a>
+      </div>
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="index.html" class="text-slate-300 hover:text-white transition">ホーム</a>
+        <a href="chapter1.html" class="text-slate-300 hover:text-white transition">第1章</a>
+        <a href="chapter2.html" class="text-slate-300 hover:text-white transition">第2章</a>
+        <a href="chapter3.html" class="text-slate-300 hover:text-white transition">第3章</a>
+        <a href="chapter4.html" class="text-slate-300 hover:text-white transition">第4章</a>
+        <a href="chapter5.html" class="text-cyan-300 border-b-2 border-cyan-400 pb-1">第5章</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-4xl mx-auto px-6 py-12 flex-1 w-full">
+
+    <!-- パンくずリスト -->
+    <nav class="text-sm text-slate-500 mb-6">
+      <a href="index.html" class="hover:underline">目次</a> &gt; <span
+        class="text-slate-800 font-semibold">第5章：発展とこれからの学習</span>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-8 md:p-12 mb-12">
+      <!-- 章見出し -->
+      <div class="border-b border-slate-200 pb-6 mb-8">
+        <span
+          class="text-indigo-600 font-bold text-sm tracking-wider uppercase bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100">Chapter
+          05</span>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-3 leading-tight">
+          発展とこれからの学習
+        </h1>
+        <p class="text-slate-500 mt-2 text-lg">Go言語の真価が発揮される領域と、初心者が陥りがちな注意点・ハマりどころ</p>
+      </div>
+
+      <!-- セクション 5-1 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>5-1</span> その他Go言語でできること（Goの真骨頂）
+        </h2>
+        <p class="mb-4">
+          Web API開発にとどまらず、Go言語はインフラ基盤や大規模分散システムにおいて世界中で採用されています。
+        </p>
+
+        <!-- Mermaid：同期処理 vs 並行処理 (Goroutine) -->
+        <div class="mermaid text-center mb-6">
+          flowchart TD
+          subgraph Sync["<b>通常の同期処理（直列実行）: 合計 約3秒</b>"]
+          S1["API呼び出し A (1秒)"] --> S2["API呼び出し B (1秒)"] --> S3["API呼び出し C (1秒)"]
+          end
+
+          subgraph Async["<b>Goroutine による並行処理: 合計 約1秒!</b>"]
+          Start["処理開始"] --> G1["go callAPI('A') [1秒]"]
+          Start --> G2["go callAPI('B') [1秒]"]
+          Start --> G3["go callAPI('C') [1秒]"]
+          G1 --> Finish["Channelで結果集約"]
+          G2 --> Finish
+          G3 --> Finish
+          end
+
+          style Sync fill:#fef2f2,stroke:#f87171,stroke-width:2px,color:#991b1b
+          style Async fill:#f0fdf4,stroke:#4ade80,stroke-width:2px,color:#166534
+          style S1 fill:#fee2e2,stroke:#ef4444,stroke-width:1px,color:#991b1b
+          style S2 fill:#fee2e2,stroke:#ef4444,stroke-width:1px,color:#991b1b
+          style S3 fill:#fee2e2,stroke:#ef4444,stroke-width:1px,color:#991b1b
+          style G1 fill:#dcfce7,stroke:#22c55e,stroke-width:1px,color:#166534
+          style G2 fill:#dcfce7,stroke:#22c55e,stroke-width:1px,color:#166534
+          style G3 fill:#dcfce7,stroke:#22c55e,stroke-width:1px,color:#166534
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span>🚀</span> 並行処理（Goroutine &amp; Channel）
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              <code>go func() { ... }()</code>
+              と書くだけで別スレッドが立ち上がります。外部APIを100個同時に叩いて結果を集約するバッチ処理なども、数行のシンプルなコードで超高速に実現できます。
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span>🛠</span> 高性能なCLIツールの自作
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              <code>Docker</code>, <code>Kubernetes</code>, <code>Terraform</code>, <code>GitHub CLI (gh)</code>
+              はすべてGo言語で作られています。起動が一瞬で、単一バイナリとして社内ツールを配布するのに最適です。
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span>🌐</span> gRPC / マイクロサービス
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              Protocol Buffersを使ったバイナリ通信プロトコル（gRPC）とGoは最高の相性です。JSONに比べて通信データ量が激減し、マイクロサービス間の高速通信で業界標準となっています。
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-indigo-700 text-lg mb-2 flex items-center gap-2">
+              <span>💻</span> クロスコンパイルの一発実行
+            </h3>
+            <p class="text-slate-700 text-base leading-relaxed">
+              Windowsマシン上からでも、<code>GOOS=linux GOARCH=amd64 go build</code> とするだけで、Linuxサーバー（AWS
+              EC2やコンテナ）で動くバイナリが一瞬でビルドできます。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- セクション 5-2 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>5-2</span> Go開発・Next.js連携での注意点・ハマりどころ
+        </h2>
+        <p class="mb-6">
+          初学者が「あれ？ 動かない…」となりやすい代表的な注意点と対策です。
+        </p>
+
+        <div class="space-y-6">
+
+          <!-- 注意点1 -->
+          <div class="p-6 bg-amber-50/70 border border-amber-200 rounded-xl">
+            <h3 class="text-lg font-bold text-amber-900 mb-2 flex items-center gap-2">
+              ⚠️ 1. CORSとCookie（セッション）の組み合わせ制限
+            </h3>
+            <p class="text-slate-800 text-base leading-relaxed mb-2">
+              ブラウザのセキュリティ仕様上、Cookieを扱う場合（<code>AllowCredentials: true</code>）、Go側のCORSで
+              <code>AllowedOrigins: ["*"]</code>（ワイルドカード）を指定することはできません。
+            </p>
+            <p class="text-sm text-slate-600 bg-white p-3 rounded-lg border border-amber-200 font-mono">
+              // 正しい設定: 明示的にフロントエンドのオリジンを指定する<br>
+              AllowedOrigins: []string{"http://localhost:3000"}
+            </p>
+          </div>
+
+          <!-- 注意点2 -->
+          <div class="p-6 bg-amber-50/70 border border-amber-200 rounded-xl">
+            <h3 class="text-lg font-bold text-amber-900 mb-2 flex items-center gap-2">
+              ⚠️ 2. Goの「ゼロ値（Zero Value）」とJSONの <code>omitempty</code>
+            </h3>
+            <p class="text-slate-800 text-base leading-relaxed mb-2">
+              TypeScriptの <code>undefined</code> と異なり、Goの変数は宣言時に必ずデフォルト値（数値なら <code>0</code>、文字列なら
+              <code>""</code>、boolなら <code>false</code>）を持ちます。
+            </p>
+            <p class="text-slate-700 text-sm">
+              JSONタグに <code>`json:"count,omitempty"`</code> を付けていると、<code>count = 0</code>
+              の時にJSONフィールドごと消滅してしまい、フロントエンドで意図しない値（undefined）になる罠があります。
+            </p>
+          </div>
+
+          <!-- 注意点3 -->
+          <div class="p-6 bg-amber-50/70 border border-amber-200 rounded-xl">
+            <h3 class="text-lg font-bold text-amber-900 mb-2 flex items-center gap-2">
+              ⚠️ 3. <code>defer</code> によるリソース解放忘れの防止
+            </h3>
+            <p class="text-slate-800 text-base leading-relaxed mb-2">
+              ファイルオープンやDBコネクション、HTTPレスポンスボディ（<code>resp.Body</code>）を開いた際は、開いた直後に必ず <code>defer</code> でクローズしましょう。
+            </p>
+            <div class="bg-slate-900 text-slate-100 p-3 rounded-lg font-mono text-sm">
+              file, err := os.Open("data.txt")<br>
+              if err != nil { return err }<br>
+              <span class="text-cyan-400">defer file.Close()</span> // 関数の終了時に確実に実行される
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- まとめ -->
+      <section class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>5-3</span> まとめと今後のステップ
+        </h2>
+        <p class="mb-4">
+          Go言語は「覚えるべき文法ルールが極めて少なく、誰が書いても同じように読みやすい」という素晴らしい特徴を持っています。
+        </p>
+        <p class="mb-6">
+          Next.jsのフロントエンド開発力にGoのバックエンド構築力が加わることで、個人開発からエンタープライズ規模の堅牢なWebシステムまで、自在に開発できるようになります。
+        </p>
+        <div
+          class="p-6 bg-indigo-50 rounded-xl border border-indigo-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 class="font-bold text-indigo-900 text-lg">公式チュートリアルもおすすめ</h4>
+            <p class="text-slate-600 text-sm">ブラウザ上でGoを動かしながら学べる「A Tour of Go」もぜひ挑戦してみてください。</p>
+          </div>
+          <a href="https://go-tour-jp.appspot.com/" target="_blank"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow whitespace-nowrap transition">
+            A Tour of Go（日本語）↗
+          </a>
+        </div>
+      </section>
+
+      <!-- ナビゲーションボタン -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-8 mt-8">
+        <a href="chapter4.html"
+          class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition">
+          ← 第4章：実践ハンズオン！新しい機能を作ってみる
+        </a>
+        <a href="index.html"
+          class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow hover:shadow-indigo-500/30 transition">
+          目次に戻る 🏠
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-slate-900 text-slate-400 py-8 px-6 text-center text-sm border-t border-slate-800">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© モンスター図鑑プロジェクト - Next.js & Go 開発ドキュメント</p>
+      <div class="flex space-x-4">
+        <a href="index.html" class="hover:text-white transition">目次へ</a>
+        <a href="chapter4.html" class="hover:text-white transition">第4章へ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mermaid初期化 & 拡大モーダルスクリプト -->
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.createElement('div');
+      modal.id = 'mermaid-modal';
+      modal.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 cursor-zoom-out transition-opacity duration-200';
+      modal.innerHTML = `
+        <div class="relative w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] bg-white rounded-2xl p-4 md:p-6 shadow-2xl overflow-hidden cursor-default flex flex-col items-center">
+          <div class="w-full flex justify-between items-center pb-3 border-b border-slate-200 mb-2 flex-shrink-0">
+            <span class="text-sm font-bold text-slate-500">🔍 図の全画面プレビュー (Escキーまたは外側クリックで閉じます)</span>
+            <button id="close-modal-btn" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg transition">✕</button>
+          </div>
+          <div id="modal-content" class="w-full flex-1 flex justify-center items-center overflow-auto p-2"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const modalContent = document.getElementById('modal-content');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalContent.innerHTML = '';
+      };
+
+      closeModalBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      const openModal = (mermaidEl) => {
+        const svg = mermaidEl.querySelector('svg');
+        if (svg) {
+          modalContent.innerHTML = svg.outerHTML;
+          const modalSvg = modalContent.querySelector('svg');
+          modalSvg.style.width = '100%';
+          modalSvg.style.height = '100%';
+          modalSvg.style.maxWidth = '100%';
+          modalSvg.style.maxHeight = '100%';
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      };
+
+      setTimeout(() => {
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          el.classList.add('cursor-pointer', 'flex', 'justify-center', 'items-center', 'w-full');
+          if (!el.parentElement.classList.contains('mermaid-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-wrapper bg-white border border-slate-200 rounded-xl p-6 my-6 shadow-sm hover:shadow-md transition flex justify-center items-center overflow-x-auto cursor-pointer';
+            wrapper.title = 'クリックで拡大表示';
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+
+            wrapper.addEventListener('click', (e) => {
+              if (!e.target.closest('#mermaid-modal')) {
+                openModal(el);
+              }
+            });
+          }
+        });
+      }, 500);
+    });
+  </script>
+
+</body>
+
+</html>

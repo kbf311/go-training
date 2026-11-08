@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第2章：環境構築とGoの第一歩 | Go言語実践Web入門</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
+  <script src="assets/js/mermaid.min.js"></script>
+</head>
+<body class="text-[18px] leading-relaxed text-slate-800 bg-slate-50 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="bg-cyan-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-sm tracking-wide">Go × Next.js</span>
+        <a href="index.html" class="text-2xl font-bold tracking-tight hover:text-cyan-300 transition">Go言語 実践Web入門</a>
+      </div>
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="index.html" class="text-slate-300 hover:text-white transition">ホーム</a>
+        <a href="chapter1.html" class="text-slate-300 hover:text-white transition">第1章</a>
+        <a href="chapter2.html" class="text-cyan-300 border-b-2 border-cyan-400 pb-1">第2章</a>
+        <a href="chapter3.html" class="text-slate-300 hover:text-white transition">第3章</a>
+        <a href="chapter4.html" class="text-slate-300 hover:text-white transition">第4章</a>
+        <a href="chapter5.html" class="text-slate-300 hover:text-white transition">第5章</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-4xl mx-auto px-6 py-12 flex-1 w-full">
+
+    <!-- パンくずリスト -->
+    <nav class="text-sm text-slate-500 mb-6">
+      <a href="index.html" class="hover:underline">目次</a> &gt; <span class="text-slate-800 font-semibold">第2章：環境構築とGoの第一歩</span>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-8 md:p-12 mb-12">
+      <!-- 章見出し -->
+      <div class="border-b border-slate-200 pb-6 mb-8">
+        <span class="text-indigo-600 font-bold text-sm tracking-wider uppercase bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100">Chapter 02</span>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-3 leading-tight">
+          環境構築とGoの第一歩
+        </h1>
+        <p class="text-slate-500 mt-2 text-lg">Goのインストールからプロジェクト初期化、TypeScriptエンジニア向けの文法入門</p>
+      </div>
+
+      <!-- セクション 2-1 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>2-1</span> Goのインストールと環境確認
+        </h2>
+        <p class="mb-4">
+          Go言語の開発環境は非常にシンプルです。ランタイムやコンパイラが1つのインストーラにまとまっています。
+        </p>
+
+        <h3 class="font-bold text-slate-800 text-xl mb-2">インストール手順</h3>
+        <ol class="list-decimal list-inside space-y-2 mb-4 text-slate-700">
+          <li>公式サイト（<a href="https://go.dev/dl/" target="_blank" class="text-indigo-600 underline font-semibold">go.dev/dl/</a>）からお使いのOS（Windows / macOS / Linux）向けのインストーラをダウンロードします。</li>
+          <li>Windowsの場合は <code>.msi</code>、Macの場合は <code>.pkg</code> を実行して画面の指示に従いインストールします。</li>
+          <li>ターミナル（PowerShellやCommand Prompt）を開き、以下のコマンドでバージョンが表示されるか確認します。</li>
+        </ol>
+
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[16px] shadow-inner">
+          <span class="text-slate-400"># バージョンの確認</span><br>
+          <span class="text-cyan-400">$</span> go version<br>
+          <span class="text-emerald-400">go version go1.22.x windows/amd64</span>
+        </div>
+
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg text-amber-900 text-base">
+          <strong>豆知識：GOPATHについて</strong><br>
+          昔のGoは <code>$GOPATH</code> という専用フォルダ以下にすべてのコードを置くルールがありましたが、現在のGo（Go Modules導入後）は <strong>好きなフォルダ（任意の作業ディレクトリ）で自由に開発できます。</strong> 環境変数の複雑な設定は一切不要です。
+        </div>
+      </section>
+
+      <!-- セクション 2-2 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>2-2</span> Goプロジェクトの作成（初期化）
+        </h2>
+        <p class="mb-4">
+          Node.jsでいう <code>npm init -y</code>（<code>package.json</code> 生成）に相当するのが、Goの <code>go mod init</code> です。
+        </p>
+
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-6 font-mono text-[16px] shadow-inner">
+          <span class="text-slate-400"># プロジェクトフォルダを作成して移動</span><br>
+          <span class="text-cyan-400">$</span> mkdir backend<br>
+          <span class="text-cyan-400">$</span> cd backend<br><br>
+          <span class="text-slate-400"># Goモジュールの初期化 (モジュール名を指定)</span><br>
+          <span class="text-cyan-400">$</span> go mod init backend
+        </div>
+
+        <!-- Mermaid：モジュールライフサイクルのフローチャート -->
+        <div class="mermaid text-center">
+flowchart LR
+    Init["go mod init backend<br>(go.mod 生成)"] --> Get["go get ライブラリ名<br>(依存のダウンロード)"]
+    Get --> Tidy["go mod tidy<br>(不要削除 & go.sum 同期)"]
+    Tidy --> Build["go build / go run<br>(単一バイナリ出力)"]
+
+    style Init fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#172554
+    style Get fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#1e1b4b
+    style Tidy fill:#fdf4ff,stroke:#a855f7,stroke-width:2px,color:#3b0764
+    style Build fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#052e16
+        </div>
+
+        <h3 class="font-bold text-slate-800 text-xl mb-3 mt-6">生成されるファイルの役割</h3>
+        <div class="space-y-4 mb-4">
+          <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h4 class="font-bold text-indigo-700">📄 go.mod（Node.js の package.json に相当）</h4>
+            <p class="text-slate-600 text-base mt-1">モジュール名、Goの言語バージョン、依存している外部ライブラリの一覧が自動管理されます。</p>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h4 class="font-bold text-indigo-700">📄 go.sum（Node.js の package-lock.json に相当）</h4>
+            <p class="text-slate-600 text-base mt-1">インストールしたライブラリのチェックサム（暗号ハッシュ）が記録され、改ざん防止と安全な再現ビルドを保証します。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- セクション 2-3 -->
+      <section class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>2-3</span> TypeScriptエンジニアのためのGo文法のキモ
+        </h2>
+        <p class="mb-4">
+          GoとTypeScriptはどちらも「静的型付け」ですが、思想にいくつか決定的な違いがあります。重要な3大ポイントを押さえましょう。
+        </p>
+
+        <!-- 3大ポイント -->
+        <div class="space-y-8 mt-6">
+
+          <!-- 1. 型と構造体 -->
+          <div class="border border-slate-200 rounded-xl p-6 bg-slate-50/50">
+            <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <span class="bg-indigo-600 text-white rounded-md w-7 h-7 inline-flex items-center justify-center text-sm">1</span>
+              TypeScriptの <code>interface</code> ≒ Goの <code>struct</code>（構造体）
+            </h3>
+            <p class="text-slate-700 text-base mb-4">
+              TypeScriptのオブジェクト型定義は、Goでは <code>struct</code> を使います。また、JSONキー名とのマッピングは「構造体タグ（<code>`json:"id"`</code>）」で指定します。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-[15px]">
+              <div>
+                <div class="bg-blue-900 text-blue-200 px-3 py-1.5 rounded-t-lg text-xs font-bold font-sans">TypeScript (interface)</div>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-b-lg overflow-x-auto"><code>interface Monster {
+  id: number;
+  name: string;
+  element: string;
+}</code></pre>
+              </div>
+              <div>
+                <div class="bg-cyan-900 text-cyan-200 px-3 py-1.5 rounded-t-lg text-xs font-bold font-sans">Go (struct)</div>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-b-lg overflow-x-auto"><code>type Monster struct {
+    ID      int64  `json:"id"`
+    Name    string `json:"name"`
+    Element string `json:"element"`
+}</code></pre>
+              </div>
+            </div>
+            <p class="text-sm text-slate-500 mt-2">※Goでは先頭が大文字のフィールド（<code>ID</code>, <code>Name</code>）のみ、外部パッケージやJSON変換からアクセス可能（公開）になります。</p>
+          </div>
+
+          <!-- 2. エラーハンドリング -->
+          <div class="border border-slate-200 rounded-xl p-6 bg-slate-50/50">
+            <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <span class="bg-indigo-600 text-white rounded-md w-7 h-7 inline-flex items-center justify-center text-sm">2</span>
+              <code>try-catch</code> は使わない！ 戻り値 <code>if err != nil</code>
+            </h3>
+            <p class="text-slate-700 text-base mb-4">
+              Goには一般的な例外（Exception）スローがありません。失敗する可能性がある関数は、戻り値の最後に <code>error</code> を返します。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-[15px]">
+              <div>
+                <div class="bg-blue-900 text-blue-200 px-3 py-1.5 rounded-t-lg text-xs font-bold font-sans">TypeScript (try-catch)</div>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-b-lg overflow-x-auto"><code>try {
+  const data = await fetchData();
+  console.log(data);
+} catch (err) {
+  console.error("失敗:", err);
+}</code></pre>
+              </div>
+              <div>
+                <div class="bg-cyan-900 text-cyan-200 px-3 py-1.5 rounded-t-lg text-xs font-bold font-sans">Go (if err != nil)</div>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-b-lg overflow-x-auto"><code>data, err := fetchData()
+if err != nil {
+    log.Printf("失敗: %v", err)
+    return
+}
+fmt.Println(data)</code></pre>
+              </div>
+            </div>
+            <p class="text-sm text-slate-500 mt-2">※一見冗長に見えますが、「どこでエラーが起き、どう対処しているか」がコードを読むだけで100%把握できる堅牢な設計思想です。</p>
+          </div>
+
+          <!-- 3. 変数宣言 -->
+          <div class="border border-slate-200 rounded-xl p-6 bg-slate-50/50">
+            <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <span class="bg-indigo-600 text-white rounded-md w-7 h-7 inline-flex items-center justify-center text-sm">3</span>
+              短縮変数宣言 <code>:=</code> と 型推論
+            </h3>
+            <p class="text-slate-700 text-base mb-2">
+              関数内では <code>msg := "Hello"</code> のように <code>:=</code> を使うことで、型を明示せず自動推論で変数を宣言できます（TypeScriptの <code>const</code> / <code>let</code> と同じ手軽さ）。
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ナビゲーションボタン -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-8 mt-8">
+        <a href="chapter1.html" class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition">
+          ← 第1章：なぜNext.js × Goなのか？
+        </a>
+        <a href="chapter3.html" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow hover:shadow-indigo-500/30 transition">
+          第3章：GoによるWeb API構築の基礎 →
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-slate-900 text-slate-400 py-8 px-6 text-center text-sm border-t border-slate-800">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© モンスター図鑑プロジェクト - Next.js & Go 開発ドキュメント</p>
+      <div class="flex space-x-4">
+        <a href="chapter1.html" class="hover:text-white transition">第1章へ</a>
+        <a href="chapter3.html" class="hover:text-white transition">第3章へ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mermaid初期化 & 拡大モーダルスクリプト -->
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.createElement('div');
+      modal.id = 'mermaid-modal';
+      modal.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 cursor-zoom-out transition-opacity duration-200';
+      modal.innerHTML = `
+        <div class="relative w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] bg-white rounded-2xl p-4 md:p-6 shadow-2xl overflow-hidden cursor-default flex flex-col items-center">
+          <div class="w-full flex justify-between items-center pb-3 border-b border-slate-200 mb-2 flex-shrink-0">
+            <span class="text-sm font-bold text-slate-500">🔍 図の全画面プレビュー (Escキーまたは外側クリックで閉じます)</span>
+            <button id="close-modal-btn" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg transition">✕</button>
+          </div>
+          <div id="modal-content" class="w-full flex-1 flex justify-center items-center overflow-auto p-2"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const modalContent = document.getElementById('modal-content');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalContent.innerHTML = '';
+      };
+
+      closeModalBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      const openModal = (mermaidEl) => {
+        const svg = mermaidEl.querySelector('svg');
+        if (svg) {
+          modalContent.innerHTML = svg.outerHTML;
+          const modalSvg = modalContent.querySelector('svg');
+          modalSvg.style.width = '100%';
+          modalSvg.style.height = '100%';
+          modalSvg.style.maxWidth = '100%';
+          modalSvg.style.maxHeight = '100%';
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      };
+
+      setTimeout(() => {
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          el.classList.add('cursor-pointer', 'flex', 'justify-center', 'items-center', 'w-full');
+          if (!el.parentElement.classList.contains('mermaid-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-wrapper bg-white border border-slate-200 rounded-xl p-6 my-6 shadow-sm hover:shadow-md transition flex justify-center items-center overflow-x-auto cursor-pointer';
+            wrapper.title = 'クリックで拡大表示';
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+
+            wrapper.addEventListener('click', (e) => {
+              if (!e.target.closest('#mermaid-modal')) {
+                openModal(el);
+              }
+            });
+          }
+        });
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>

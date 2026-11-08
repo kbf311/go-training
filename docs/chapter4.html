@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第4章：実践ハンズオン！新しい機能を作ってみる | Go言語実践Web入門</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
+  <script src="assets/js/mermaid.min.js"></script>
+</head>
+<body class="text-[18px] leading-relaxed text-slate-800 bg-slate-50 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="bg-cyan-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-sm tracking-wide">Go × Next.js</span>
+        <a href="index.html" class="text-2xl font-bold tracking-tight hover:text-cyan-300 transition">Go言語 実践Web入門</a>
+      </div>
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="index.html" class="text-slate-300 hover:text-white transition">ホーム</a>
+        <a href="chapter1.html" class="text-slate-300 hover:text-white transition">第1章</a>
+        <a href="chapter2.html" class="text-slate-300 hover:text-white transition">第2章</a>
+        <a href="chapter3.html" class="text-slate-300 hover:text-white transition">第3章</a>
+        <a href="chapter4.html" class="text-cyan-300 border-b-2 border-cyan-400 pb-1">第4章</a>
+        <a href="chapter5.html" class="text-slate-300 hover:text-white transition">第5章</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-4xl mx-auto px-6 py-12 flex-1 w-full">
+
+    <!-- パンくずリスト -->
+    <nav class="text-sm text-slate-500 mb-6">
+      <a href="index.html" class="hover:underline">目次</a> &gt; <span class="text-slate-800 font-semibold">第4章：実践ハンズオン！新しい機能を作ってみる</span>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-8 md:p-12 mb-12">
+      <!-- 章見出し -->
+      <div class="border-b border-slate-200 pb-6 mb-8">
+        <span class="text-indigo-600 font-bold text-sm tracking-wider uppercase bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100">Chapter 04</span>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-3 leading-tight">
+          実践ハンズオン！新しい機能を作ってみる
+        </h1>
+        <p class="text-slate-500 mt-2 text-lg">「DBからIDが偶数のモンスターを一括削除する機能」をフルスタックで追加実装する</p>
+      </div>
+
+      <!-- セクション 4-1 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>4-1</span> 今回のハンズオン要件と処理シーケンス
+        </h2>
+        <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+          <h3 class="text-lg font-bold text-slate-800 mb-2">🎯 実装ゴール</h3>
+          <ul class="list-disc list-inside space-y-2 text-slate-700">
+            <li>モンスター一覧画面に「偶数IDを一括削除」ボタンを設置する。</li>
+            <li>ボタンを押すと、Goの削除API（<code>POST /api/monsters/delete-even</code>）を呼び出す。</li>
+            <li>Go側で <code>id % 2 = 0</code> のレコードをSQLiteから削除し、結果をJSONで返す。</li>
+            <li>Next.js側で一覧が自動リフレッシュされ、偶数IDのモンスターが消えていることを確認する。</li>
+          </ul>
+        </div>
+
+        <!-- Mermaid：偶数ID削除のシーケンス図 -->
+        <div class="mermaid text-center mb-6">
+sequenceDiagram
+    autonumber
+    actor User as 👤 ユーザー (ブラウザ)
+    participant NextUI as Next.js ボタンUI
+    participant ApiClient as frontend/lib/api.ts
+    participant GoHandler as Go Handler (/delete-even)
+    participant SQLite as SQLite DB
+
+    User->>NextUI: 「偶数IDを一括削除」ボタンをクリック
+    NextUI->>ApiClient: api.deleteEvenMonsters()
+    ApiClient->>GoHandler: POST /api/monsters/delete-even
+    GoHandler->>SQLite: DELETE FROM monsters WHERE id % 2 = 0
+    SQLite-->>GoHandler: 削除完了 (成功)
+    GoHandler-->>ApiClient: {"message": "偶数IDのモンスターを削除しました"}
+    ApiClient-->>NextUI: 成功レスポンス返却
+    NextUI->>NextUI: loadMonsters() で一覧を自動再取得
+    NextUI-->>User: 画面が更新され、奇数IDだけが表示される！
+        </div>
+      </section>
+
+      <!-- セクション 4-2 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>4-2</span> 【Go言語側】削除処理の作成
+        </h2>
+        <p class="mb-6">
+          sqlcによるSQLクエリ定義から、Service、Handler、ルーティングまで順を追って実装します。
+        </p>
+
+        <!-- ステップ1 -->
+        <h3 class="text-xl font-bold text-indigo-800 mb-2">ステップ 1：SQLクエリの追加</h3>
+        <p class="text-slate-700 text-base mb-2">
+          <code>backend/db/queries/monsters.sql</code> の末尾に偶数ID削除用のSQLを追加します。
+        </p>
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[15px] overflow-x-auto shadow-inner">
+<pre><code class="text-slate-400">-- backend/db/queries/monsters.sql の末尾に追加</code>
+<span class="text-cyan-400">-- name: DeleteEvenMonsters :exec</span>
+<span class="text-indigo-300">DELETE FROM</span> monsters
+<span class="text-indigo-300">WHERE</span> id % 2 = 0;
+</pre>
+        </div>
+        <p class="text-slate-600 text-sm mb-4">
+          ※ <code>sqlc</code> コマンドを実行できる環境であれば <code>sqlc generate</code> を実行すると、<code>internal/db/monsters.sql.go</code> に <code>DeleteEvenMonsters(ctx)</code> 関数が自動生成されます。
+        </p>
+
+        <!-- ステップ2 -->
+        <h3 class="text-xl font-bold text-indigo-800 mb-2 mt-6">ステップ 2：Repository &amp; Service層の追加</h3>
+        <p class="text-slate-700 text-base mb-2">
+          <code>internal/service/monster_service.go</code> に一括削除のビジネスロジックを追加します。
+        </p>
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[15px] overflow-x-auto shadow-inner">
+<pre><code>// internal/service/monster_service.go
+func (s *MonsterService) DeleteEvenMonsters(ctx context.Context) error {
+    // 生SQLを実行する場合の例（sqlc生成コードでも可）
+    _, err := s.db.ExecContext(ctx, "DELETE FROM monsters WHERE id % 2 = 0")
+    if err != nil {
+        return fmt.Errorf("failed to delete even monsters: %w", err)
+    }
+    return nil
+}</code></pre>
+        </div>
+
+        <!-- ステップ3 -->
+        <h3 class="text-xl font-bold text-indigo-800 mb-2 mt-6">ステップ 3：Handler の実装</h3>
+        <p class="text-slate-700 text-base mb-2">
+          <code>internal/handler/monster_handler.go</code> にHTTPリクエストを処理するハンドラー関数を追加します。
+        </p>
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[15px] overflow-x-auto shadow-inner">
+<pre><code>// internal/handler/monster_handler.go
+func (h *MonsterHandler) DeleteEvenMonsters(w http.ResponseWriter, r *http.Request) {
+    // サービスを呼び出して削除
+    if err := h.service.DeleteEvenMonsters(r.Context()); err != nil {
+        http.Error(w, `{"error":"削除に失敗しました"}`, http.StatusInternalServerError)
+        return
+    }
+
+    // 成功レスポンスを返却
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte(`{"message":"偶数IDのモンスターを削除しました"}`))
+}</code></pre>
+        </div>
+
+        <!-- ステップ4 -->
+        <h3 class="text-xl font-bold text-indigo-800 mb-2 mt-6">ステップ 4：ルーティングの登録</h3>
+        <p class="text-slate-700 text-base mb-2">
+          <code>cmd/api/main.go</code> のモンスター関連ルーティングに登録します。
+        </p>
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[15px] overflow-x-auto shadow-inner">
+<pre><code>// cmd/api/main.go のルーティング定義部分
+r.Route("/api/monsters", func(r chi.Router) {
+    // ... 既存のルーティング ...
+    
+    // ★追加: 偶数ID削除エンドポイント
+    r.Post("/delete-even", monsterHandler.DeleteEvenMonsters)
+})</code></pre>
+        </div>
+      </section>
+
+      <!-- セクション 4-3 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>4-3</span> 【Next.js側】ボタンを作って呼び出す
+        </h2>
+        <p class="mb-4">
+          フロントエンド側でAPIクライアント関数を追加し、UIにボタンを設置します。
+        </p>
+
+        <h3 class="font-bold text-slate-800 text-lg mb-2">1. APIクライアントに関数を追加</h3>
+        <p class="text-slate-700 text-base mb-2">
+          <code>frontend/lib/api.ts</code> の <code>api</code> オブジェクトに追加します。
+        </p>
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-6 font-mono text-[15px] overflow-x-auto shadow-inner">
+<pre><code>// frontend/lib/api.ts
+export const api = {
+  // ... 既存のメソッド ...
+
+  // ★追加: 偶数ID一括削除
+  async deleteEvenMonsters(): Promise&lt;{ message: string }&gt; {
+    return request&lt;{ message: string }&gt;("/monsters/delete-even", {
+      method: "POST",
+    });
+  },
+};</code></pre>
+        </div>
+
+        <h3 class="font-bold text-slate-800 text-lg mb-2">2. 一覧画面にボタンを設置</h3>
+        <p class="text-slate-700 text-base mb-2">
+          モンスター一覧画面（<code>frontend/app/monsters/page.tsx</code>）の操作バーにボタンを追加します。
+        </p>
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[15px] overflow-x-auto shadow-inner">
+<pre><code>// frontend/app/monsters/page.tsx 内のハンドラー
+const handleDeleteEven = async () => {
+  if (!confirm("本当に偶数IDのモンスターをすべて削除しますか？")) return;
+
+  try {
+    const res = await api.deleteEvenMonsters();
+    alert(res.message);
+    // 一覧データを再読み込み（リフレッシュ）
+    loadMonsters();
+  } catch (err: any) {
+    alert("削除に失敗しました: " + err.message);
+  }
+};
+
+// JSX部分 (ボタン)
+&lt;button
+  onClick={handleDeleteEven}
+  className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition"
+&gt;
+  偶数IDを一括削除
+&lt;/button&gt;</code></pre>
+        </div>
+      </section>
+
+      <!-- セクション 4-4 -->
+      <section class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>4-4</span> 動作確認と確認ポイント
+        </h2>
+        <div class="space-y-4">
+          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900">
+            <h4 class="font-bold mb-1">✅ 動作確認チェックリスト</h4>
+            <ol class="list-decimal list-inside space-y-1 text-base">
+              <li>Goバックエンドを起動（<code>go run ./cmd/api</code>）</li>
+              <li>Next.jsフロントエンドを起動（<code>npm run dev</code>）</li>
+              <li>ブラウザで <code>http://localhost:3000/monsters</code> を開き、一覧が表示されることを確認</li>
+              <li>「偶数IDを一括削除」ボタンをクリック</li>
+              <li>アラートが表示され、ID: 2, 4, 6... のモンスターが画面から消え、奇数IDだけが残れば成功！</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- ナビゲーションボタン -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-8 mt-8">
+        <a href="chapter3.html" class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition">
+          ← 第3章：GoによるWeb API構築の基礎
+        </a>
+        <a href="chapter5.html" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow hover:shadow-indigo-500/30 transition">
+          第5章：発展とこれからの学習 →
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-slate-900 text-slate-400 py-8 px-6 text-center text-sm border-t border-slate-800">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© モンスター図鑑プロジェクト - Next.js & Go 開発ドキュメント</p>
+      <div class="flex space-x-4">
+        <a href="chapter3.html" class="hover:text-white transition">第3章へ</a>
+        <a href="chapter5.html" class="hover:text-white transition">第5章へ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mermaid初期化 & 拡大モーダルスクリプト -->
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.createElement('div');
+      modal.id = 'mermaid-modal';
+      modal.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 cursor-zoom-out transition-opacity duration-200';
+      modal.innerHTML = `
+        <div class="relative w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] bg-white rounded-2xl p-4 md:p-6 shadow-2xl overflow-hidden cursor-default flex flex-col items-center">
+          <div class="w-full flex justify-between items-center pb-3 border-b border-slate-200 mb-2 flex-shrink-0">
+            <span class="text-sm font-bold text-slate-500">🔍 図の全画面プレビュー (Escキーまたは外側クリックで閉じます)</span>
+            <button id="close-modal-btn" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg transition">✕</button>
+          </div>
+          <div id="modal-content" class="w-full flex-1 flex justify-center items-center overflow-auto p-2"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const modalContent = document.getElementById('modal-content');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalContent.innerHTML = '';
+      };
+
+      closeModalBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      const openModal = (mermaidEl) => {
+        const svg = mermaidEl.querySelector('svg');
+        if (svg) {
+          modalContent.innerHTML = svg.outerHTML;
+          const modalSvg = modalContent.querySelector('svg');
+          modalSvg.style.width = '100%';
+          modalSvg.style.height = '100%';
+          modalSvg.style.maxWidth = '100%';
+          modalSvg.style.maxHeight = '100%';
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      };
+
+      setTimeout(() => {
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          el.classList.add('cursor-pointer', 'flex', 'justify-center', 'items-center', 'w-full');
+          if (!el.parentElement.classList.contains('mermaid-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-wrapper bg-white border border-slate-200 rounded-xl p-6 my-6 shadow-sm hover:shadow-md transition flex justify-center items-center overflow-x-auto cursor-pointer';
+            wrapper.title = 'クリックで拡大表示';
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+
+            wrapper.addEventListener('click', (e) => {
+              if (!e.target.closest('#mermaid-modal')) {
+                openModal(el);
+              }
+            });
+          }
+        });
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS monsters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    element TEXT NOT NULL,
+    rarity INTEGER NOT NULL,
+    habitats TEXT NOT NULL,
+    hp INTEGER NOT NULL,
+    attack INTEGER NOT NULL,
+    description TEXT
+);
+

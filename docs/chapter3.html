@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第3章：GoによるWeb API構築の基礎 | Go言語実践Web入門</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
+  <script src="assets/js/mermaid.min.js"></script>
+</head>
+
+<body class="text-[18px] leading-relaxed text-slate-800 bg-slate-50 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="bg-cyan-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-sm tracking-wide">Go ×
+          Next.js</span>
+        <a href="index.html" class="text-2xl font-bold tracking-tight hover:text-cyan-300 transition">Go言語 実践Web入門</a>
+      </div>
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="index.html" class="text-slate-300 hover:text-white transition">ホーム</a>
+        <a href="chapter1.html" class="text-slate-300 hover:text-white transition">第1章</a>
+        <a href="chapter2.html" class="text-slate-300 hover:text-white transition">第2章</a>
+        <a href="chapter3.html" class="text-cyan-300 border-b-2 border-cyan-400 pb-1">第3章</a>
+        <a href="chapter4.html" class="text-slate-300 hover:text-white transition">第4章</a>
+        <a href="chapter5.html" class="text-slate-300 hover:text-white transition">第5章</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-4xl mx-auto px-6 py-12 flex-1 w-full">
+
+    <!-- パンくずリスト -->
+    <nav class="text-sm text-slate-500 mb-6">
+      <a href="index.html" class="hover:underline">目次</a> &gt; <span class="text-slate-800 font-semibold">第3章：GoによるWeb
+        API構築の基礎</span>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-8 md:p-12 mb-12">
+      <!-- 章見出し -->
+      <div class="border-b border-slate-200 pb-6 mb-8">
+        <span
+          class="text-indigo-600 font-bold text-sm tracking-wider uppercase bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100">Chapter
+          03</span>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-3 leading-tight">
+          GoによるWeb API構築の基礎
+        </h1>
+        <p class="text-slate-500 mt-2 text-lg">ライブラリの選定理由、APIサーバーの実装、Next.jsからの呼び出し連携</p>
+      </div>
+
+      <!-- セクション 3-1 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>3-1</span> 今回利用しているライブラリの説明
+        </h2>
+        <p class="mb-6">
+          モンスター図鑑プロジェクトでは、無駄なブラックボックスを作らず、Goの標準ライブラリとの親和性が高いツールを厳選しています。
+        </p>
+
+        <!-- sqlcのコード生成フロー図 -->
+        <div class="mermaid text-center mb-6">
+          flowchart LR
+          Schema["<b>schema.sql</b><br>テーブル定義"] & Queries["<b>monsters.sql</b><br>生SQLクエリ"] --> SQLC["<b>sqlc
+            generate</b><br>(コンパイル時解析)"]
+          SQLC --> Code["<b>*.sql.go</b><br>型安全なGo関数 &<br>structが完全自動生成!"]
+
+          style Schema fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#0f172a
+          style Queries fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#0f172a
+          style SQLC fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#1e1b4b
+          style Code fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#052e16
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+          <!-- Chi -->
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-indigo-700 text-lg">Chi (go-chi/chi/v5)</h3>
+              <span class="text-xs bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded">HTTP ルーター</span>
+            </div>
+            <p class="text-slate-700 text-base leading-relaxed">
+              標準の <code>net/http</code>
+              に100%準拠した軽量高速なルーティングライブラリ。独自のcontextを持たず標準ハンドラーシグネチャをそのまま扱えるため、GoのWeb開発デファクトスタンダードの1つです。
+            </p>
+          </div>
+
+          <!-- Chi CORS -->
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-indigo-700 text-lg">go-chi/cors</h3>
+              <span class="text-xs bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded">CORS ミドルウェア</span>
+            </div>
+            <p class="text-slate-700 text-base leading-relaxed">
+              ブラウザからのクロスオリジン通信を制御します。Next.js（ポート3000）からGo（ポート8080）へのCookie（認証セッション）送信を
+              <code>AllowCredentials: true</code> で安全に許可します。
+            </p>
+          </div>
+
+          <!-- sqlc -->
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-indigo-700 text-lg">sqlc</h3>
+              <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">型安全コード生成</span>
+            </div>
+            <p class="text-slate-700 text-base leading-relaxed">
+              開発者が生SQL（<code>queries/*.sql</code>）を書くだけで、Goの型付き構造体と実行関数を自動生成するツール。ORMの「遅い」「ブラックボックス」問題を解決し、コンパイル時にSQLミスを検知できます。
+            </p>
+          </div>
+
+          <!-- modernc.org/sqlite -->
+          <div class="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-indigo-700 text-lg">modernc.org/sqlite</h3>
+              <span class="text-xs bg-cyan-100 text-cyan-800 font-semibold px-2 py-0.5 rounded">Pure Go SQLite</span>
+            </div>
+            <p class="text-slate-700 text-base leading-relaxed">
+              C言語コンパイラ（GCC等）が不要な純Go（Pure Go）実装のSQLiteドライバ。Windows環境でもCgoのインストールなしに <code>go run</code> や
+              <code>go build</code> が一発で動作します。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- セクション 3-2 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>3-2</span> ライブラリのインストール方法
+        </h2>
+        <p class="mb-4">
+          Node.jsの <code>npm install &lt;package&gt;</code> に対応するのが <code>go get &lt;package&gt;</code> です。
+        </p>
+
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[16px] shadow-inner">
+          <span class="text-slate-400"># 外部ライブラリの追加 (go get)</span><br>
+          <span class="text-cyan-400">$</span> go get github.com/go-chi/chi/v5<br>
+          <span class="text-cyan-400">$</span> go get github.com/go-chi/cors<br>
+          <span class="text-cyan-400">$</span> go get modernc.org/sqlite<br><br>
+          <span class="text-slate-400"># 不要な依存関係の整理・go.sumの同期</span><br>
+          <span class="text-cyan-400">$</span> go mod tidy
+        </div>
+
+        <div class="p-4 bg-slate-100 rounded-lg text-slate-700 text-base">
+          💡 <strong>Tip：<code>go mod tidy</code> の習慣</strong><br>
+          Goでは、コード中で <code>import</code> しているのに <code>go.mod</code> にないものを自動追加し、逆に使わなくなったライブラリを削除してくれる
+          <code>go mod tidy</code> コマンドが極めて優秀です。何かライブラリを追加・削除したら叩くのが定石です。
+        </div>
+      </section>
+
+      <!-- セクション 3-3 -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>3-3</span> Go言語側でのAPI実装と処理フロー
+        </h2>
+        <p class="mb-4">
+          リクエストを受信してからDBへアクセスし、JSONを返却するまでの全体の流れは以下のようになります。
+        </p>
+
+        <!-- Mermaid：API呼び出しシーケンス図 -->
+        <div class="mermaid text-center mb-6">
+          sequenceDiagram
+          autonumber
+          actor User as 👤 Next.js (ブラウザ)
+          participant Chi as Chi Router (main.go)
+          participant Handler as Handler (monster_handler.go)
+          participant Service as Service (monster_service.go)
+          participant DB as SQLite DB
+
+          User->>Chi: GET /api/monsters (Cookie付与)
+          Chi->>Handler: ルーティング・HTTP受信
+          Handler->>Service: GetAllMonsters(ctx)
+          Service->>DB: SELECT * FROM monsters ORDER BY id
+          DB-->>Service: レコード配列 []Monster
+          Service-->>Handler: []Monster, nil
+          Handler-->>User: HTTP 200 OK (JSONレスポンス)
+        </div>
+
+        <h3 class="font-bold text-slate-800 text-lg mb-2">1. ルーティング定義（Chi）</h3>
+        <p class="text-slate-700 text-base mb-2">
+          URLパスとハンドラーを紐付けます。<code>backend/cmd/api/main.go</code> では以下のように定義しています。
+        </p>
+
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-6 font-mono text-[15px] overflow-x-auto shadow-inner">
+          <pre><code>r := chi.NewRouter()
+
+// ミドルウェア登録 (ログ出力やCORS)
+r.Use(chimw.Logger)
+r.Use(cors.Handler(corsOptions))
+
+// API ルート定義
+r.Route("/api", func(r chi.Router) {
+    // モンスター一覧取得
+    r.Get("/monsters", monsterHandler.ListMonsters)
+    // ログイン処理
+    r.Post("/login", authHandler.Login)
+})</code></pre>
+        </div>
+
+        <h3 class="font-bold text-slate-800 text-lg mb-2">2. ハンドラーの実装例（JSONを返す）</h3>
+        <p class="text-slate-700 text-base mb-2">
+          <code>w http.ResponseWriter</code> にレスポンスを書き込み、<code>r *http.Request</code> からリクエスト情報を取り出します。
+        </p>
+
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-4 font-mono text-[15px] overflow-x-auto shadow-inner">
+          <pre><code>// モンスター一覧を返すハンドラー
+func (h *MonsterHandler) ListMonsters(w http.ResponseWriter, r *http.Request) {
+    // 1. サービスのビジネスロジックを呼び出す
+    monsters, err := h.service.GetAllMonsters(r.Context())
+    if err != nil {
+        http.Error(w, "データ取得に失敗しました", http.StatusInternalServerError)
+        return
+    }
+
+    // 2. ヘッダーを application/json に設定
+    w.Header().Set("Content-Type", "application/json")
+    
+    // 3. GoのstructをJSONにエンコードして出力
+    json.NewEncoder(w).Encode(monsters)
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- セクション 3-4 -->
+      <section class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-indigo-500 flex items-center gap-2">
+          <span>3-4</span> Next.js 側からの呼び出し方法
+        </h2>
+        <p class="mb-4">
+          Next.js（TypeScript）側からは、標準の <code>fetch</code> を使ってGoのAPIを呼び出します（<code>frontend/lib/api.ts</code>）。
+        </p>
+
+        <div class="bg-slate-900 text-slate-100 p-4 rounded-xl mb-6 font-mono text-[15px] overflow-x-auto shadow-inner">
+          <pre><code>// frontend/lib/api.ts の呼び出し関数
+const API_BASE = "http://localhost:8080/api";
+
+export async function fetchMonsters(): Promise&lt;Monster[]&gt; {
+  const res = await fetch(`${API_BASE}/monsters`, {
+    method: "GET",
+    credentials: "include", // ★重要: Cookie (認証セッション) を送信
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`APIエラー: ステータスコード ${res.status}`);
+  }
+
+  return res.json();
+}</code></pre>
+        </div>
+
+        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg text-indigo-900 text-base">
+          <strong>Next.js 連携時の最重要ポイント：<code>credentials: "include"</code></strong><br>
+          別オリジン（ポート3000から8080）にリクエストを送る際、デフォルトではブラウザはCookieを送信しません。<code>credentials: "include"</code> を指定し、Go側で
+          <code>AllowCredentials: true</code> を設定することで、安全なセッションCookie認証が成立します。
+        </div>
+      </section>
+
+      <!-- ナビゲーションボタン -->
+      <div class="flex items-center justify-between border-t border-slate-200 pt-8 mt-8">
+        <a href="chapter2.html"
+          class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition">
+          ← 第2章：環境構築とGoの第一歩
+        </a>
+        <a href="chapter4.html"
+          class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow hover:shadow-indigo-500/30 transition">
+          第4章：実践ハンズオン！新しい機能を作ってみる →
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-slate-900 text-slate-400 py-8 px-6 text-center text-sm border-t border-slate-800">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>© モンスター図鑑プロジェクト - Next.js & Go 開発ドキュメント</p>
+      <div class="flex space-x-4">
+        <a href="chapter2.html" class="hover:text-white transition">第2章へ</a>
+        <a href="chapter4.html" class="hover:text-white transition">第4章へ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mermaid初期化 & 拡大モーダルスクリプト -->
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.createElement('div');
+      modal.id = 'mermaid-modal';
+      modal.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 cursor-zoom-out transition-opacity duration-200';
+      modal.innerHTML = `
+        <div class="relative w-[96vw] max-w-[96vw] h-[92vh] max-h-[92vh] bg-white rounded-2xl p-4 md:p-6 shadow-2xl overflow-hidden cursor-default flex flex-col items-center">
+          <div class="w-full flex justify-between items-center pb-3 border-b border-slate-200 mb-2 flex-shrink-0">
+            <span class="text-sm font-bold text-slate-500">🔍 図の全画面プレビュー (Escキーまたは外側クリックで閉じます)</span>
+            <button id="close-modal-btn" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg transition">✕</button>
+          </div>
+          <div id="modal-content" class="w-full flex-1 flex justify-center items-center overflow-auto p-2"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const modalContent = document.getElementById('modal-content');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalContent.innerHTML = '';
+      };
+
+      closeModalBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      const openModal = (mermaidEl) => {
+        const svg = mermaidEl.querySelector('svg');
+        if (svg) {
+          modalContent.innerHTML = svg.outerHTML;
+          const modalSvg = modalContent.querySelector('svg');
+          modalSvg.style.width = '100%';
+          modalSvg.style.height = '100%';
+          modalSvg.style.maxWidth = '100%';
+          modalSvg.style.maxHeight = '100%';
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      };
+
+      setTimeout(() => {
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          el.classList.add('cursor-pointer', 'flex', 'justify-center', 'items-center', 'w-full');
+          if (!el.parentElement.classList.contains('mermaid-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-wrapper bg-white border border-slate-200 rounded-xl p-6 my-6 shadow-sm hover:shadow-md transition flex justify-center items-center overflow-x-auto cursor-pointer';
+            wrapper.title = 'クリックで拡大表示';
+            el.parentNode.insertBefore(wrapper, el);
+            wrapper.appendChild(el);
+
+            wrapper.addEventListener('click', (e) => {
+              if (!e.target.closest('#mermaid-modal')) {
+                openModal(el);
+              }
+            });
+          }
+        });
+      }, 500);
+    });
+  </script>
+
+</body>
+
+</html>
